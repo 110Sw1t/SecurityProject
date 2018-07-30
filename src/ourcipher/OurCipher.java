@@ -53,13 +53,18 @@ private static void permuteHelper(int[] arr, int index){
         
         Cipher c = new Cipher(0x55555555);
         
-        BitSet b = BitSet.valueOf(new long[]{c.encrypt(0)});
-        BitSet bb = BitSet.valueOf(new long[]{c.encrypt(100000)});
-        
-        bb.xor(b);
-        System.out.println(bb.cardinality());
+//        BitSet b = BitSet.valueOf(new long[]{c.encrypt(0)});
+//        BitSet bb = BitSet.valueOf(new long[]{c.encrypt(10)});
+//        
+//        bb.xor(b);
+//        System.out.println(bb.cardinality());
+//
+//        for (int i = 0; i < 10000; i++) {
+//            System.out.println(c.encrypt(i));
+//        }
 
-
+        new Tester().timeTest(2000000);
+        new Tester().plaintextAvalancheTest(0, 20000);
     }
     
 }
