@@ -18,20 +18,24 @@ public class Cipher {
     
 
     private int mixFunction(int lsbs, long key) {
-        long result = key ^ expand(lsbs);
+        long result = key ^ permutatedExpand(lsbs);
 //        System.out.println(result);
-//        long[] segments = new long[8];
-//        for (int i = 0; i < 8; i++) {
-//            segments[i] = (byte) result;
-//            result >>= 8;
-//        }
-//        long[] permutatedSegments = new long[8];
-//        result = 0;
-//        for (int i = 0; i < 8; i++) {
-//            result |= segments[permutation[i]];
-//            result <<= 8;
-//        }
-        return (int)((result >> 32) ^ (int)result);
+        long[] segments = new long[8];
+        for (int i = 0; i < 8; i++) {
+            segments[i] = (byte) result;
+            result >>= 8;
+        }
+        long seg0 = segments[7]^segments[1];
+        long seg1 = segments[6]^segments[0];
+        long seg2 = segments[5]^segments[3];
+        long seg3 = segments[4]^segments[2];
+        
+        result = (seg2)|
+                (seg3 << 8)|
+                (seg1 << 16)|
+                (seg0 << 24);
+        
+        return (int)(result);
     }
 
     private long round(long number, long key) {
@@ -43,7 +47,7 @@ public class Cipher {
         return newMSBS ^ newLSBS;
     }
 
-    private static long expand(int number) {
+    private static long permutatedExpand(int number) {
         long result = number;
         long[] segments = new long[8];
         for (int i = 0; i < 4; i++) {
@@ -79,7 +83,7 @@ public class Cipher {
     private long[] expandKey (long key){
         long[] keys = new long[NUMBEROFROUNDS];
         for (int i = 0; i < NUMBEROFROUNDS; i++) {
-            keys[i] = ((key) << 2) | i;
+            keys[i] = key;
         }
         return keys;
     }

@@ -5,28 +5,34 @@
  */
 package ourcipher;
 import java.util.BitSet;
+import java.util.Random;
 /**
  *
  * @author fadia
  */
 public class Tester {
     private Cipher c;
+    private Random r;
     public Tester(){
         c = new Cipher(0x5ABCDEF5);
+        r = new Random();
     }
     public void plaintextAvalancheTest(int startNumber, long numberOfTests){
         double sum = 0, min = Double.MAX_VALUE, max = Double.MIN_VALUE;
-        for (int i = startNumber; i < numberOfTests+startNumber; i++) {
-            BitSet b = BitSet.valueOf(new long[]{c.encrypt(i-1)});
-            long ct = c.encrypt(i);
-            BitSet bb = BitSet.valueOf(new long[]{ct});
-            
-            bb.xor(b);
-            int cardinality = bb.cardinality();
+        long oldPlain = startNumber;
+        long oldCipher = c.encrypt(oldPlain);
+       
+        for (int i = 0; i < numberOfTests; i++) {
+            long newPlain = oldPlain^(1<<r.nextInt(32));
+            long newCipher = c.encrypt(newPlain);
+            long xoredNewOldCipherText = oldCipher^newCipher;
+            int cardinality = BitSet.valueOf(new long[]{xoredNewOldCipherText}).cardinality();
             if(cardinality> max) max = cardinality;
             if(cardinality<min) min = cardinality;
-            System.out.println("Input: "+i+", Output: "+ct + ", Avalanche Effect: " + cardinality+"/64bit, " +cardinality/0.640+"%.");
+            System.out.println("Input: "+newPlain+", Output: "+newCipher + ", Avalanche Effect: " + cardinality+"/64bit, " +cardinality/0.640+"%.");
             sum+=cardinality;
+            oldCipher = newCipher;
+            oldPlain = newPlain;
         }
         sum/=numberOfTests;
         System.out.println("Average avalanche "+ sum+"/64bit, " +sum/0.640+"%.");
