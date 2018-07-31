@@ -6,6 +6,7 @@
 package ourcipher;
 
 import java.util.ArrayList;
+import java.util.Random;
 
 /**
  *
@@ -18,6 +19,41 @@ public class Cipher {
     private int pc = 0;
     private final long[] keys;
     private SBOX sbox;
+    private Random r;
+    private long number;
+
+    private long generateKey(long k, int round) {
+
+        k = permute(tables.PC1, 64, k);
+
+        int lsbs = (int) (((0xFFFF0000) & (k)) >> 16);
+        int msbs = (int) ((0x0000FFFF) & (k));
+        int s = (round == 0 || round == 2 || round == 6) ? 1 : 2;
+
+        //lsbs = leftCircShift(lsbs, s);
+        //msbs = leftCircShift(msbs, s);
+        //lsbs = sbox.sub(leftCircShift(lsbs, s)%256);
+        //msbs = sbox.sub(leftCircShift(msbs, s)%256);
+        long nk = (((long) lsbs) << 32) | (msbs & 0xffffffffL);
+        //long mask = r.nextLong()*(1 << 8 | 1 << 16 | 1 << 24 | 1 << 32 | 1 << 40 | 1 << 48 | 1 << 56);
+        //nk^=mask;
+        nk = permute(tables.PC2, 64, nk);
+        return nk;
+    }
+
+    private static long permute(byte[] table, int srcWidth, long src) {
+        long dst = 0;
+        for (int i = 0; i < table.length; i++) {
+            int srcPos = srcWidth - table[i];
+            dst = (dst << 1) | (src >> srcPos & 0x01);
+        }
+        return dst;
+    }
+
+    public int leftCircShift(int bits, int k) {
+        return (bits << k) | (bits >> (Integer.SIZE - k));
+
+    }
 
     private int mixFunction(int lsbs, long key, boolean isEncrypt) {
         long result = key ^ permutatedExpand(lsbs);
@@ -47,18 +83,21 @@ public class Cipher {
     }
 
     private long round(long number, long key, boolean isEncrypt) {
+
         int lsbs = (int) (number);
         int msbs = (int) (number >> 32);
         int out1 = mixFunction(lsbs, key, isEncrypt);
         int newLSBS = out1 ^ msbs;
-        long newMSBS = (((long) lsbs) << 32);
+        long newMSBS = (((long) lsbs) << 16);
         return newMSBS ^ newLSBS;
     }
 
     private static long permutatedExpand(int number) {
         long result = number;
+
         long[] segments = new long[8];
         for (int i = 0; i < 4; i++) {
+
             segments[i] = (byte) result;
             result >>= 8;
         }
@@ -84,14 +123,18 @@ public class Cipher {
     }
 
     public Cipher(long key) {
-        this.keys = this.expandKey(key);
+        r = new Random();
         this.sbox = new SBOX();
+        this.keys = this.expandKey(key);
+
     }
 
     private long[] expandKey(long key) {
         long[] keys = new long[NUMBEROFROUNDS];
+        key = key ^ this.number;
         for (int i = 0; i < NUMBEROFROUNDS; i++) {
-            keys[i] = key;
+            keys[i] = generateKey(key, i);
+            key = keys[i];
         }
         return keys;
     }
@@ -106,6 +149,7 @@ public class Cipher {
     }
 
     public long encrypt(long number) {
+        this.number = number;
         return process(number, true);
     }
 
