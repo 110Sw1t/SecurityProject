@@ -30,8 +30,8 @@ public class Cipher {
         int msbs = (int) ((0x0000FFFF) & (k));
         int s = (round == 0 || round == 2 || round == 6) ? 1 : 2;
 
-        //lsbs = leftCircShift(lsbs, s);
-        //msbs = leftCircShift(msbs, s);
+        lsbs = leftCircShift(lsbs, s);
+        msbs = leftCircShift(msbs, s);
         //lsbs = sbox.sub(leftCircShift(lsbs, s)%256);
         //msbs = sbox.sub(leftCircShift(msbs, s)%256);
         long nk = (((long) lsbs) << 32) | (msbs & 0xffffffffL);

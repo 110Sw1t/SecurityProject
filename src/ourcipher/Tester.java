@@ -25,8 +25,6 @@ public class Tester {
     }
 
     public void plaintextAvalancheTest(int startNumber, long numberOfTests) {
-        double total_avg = 0;
-        for (int t = 0; t < 10; t++) {
             double sum = 0, min = Double.MAX_VALUE, max = Double.MIN_VALUE;
 
             long oldPlain = startNumber;
@@ -49,12 +47,10 @@ public class Tester {
                 oldPlain = newPlain;
             }
             sum /= numberOfTests;
-            total_avg += sum / 0.640 ;
             System.out.println("Key: " + this.key + "\tAverage avalanche " + sum + "/64bit, " + sum / 0.640 + "%.");
             System.out.println("Minimum avalanche " + min + "/64bit, " + min / 0.640 + "%.");
             System.out.println("Maximum avalanche " + max + "/64bit, " + max / 0.640 + "%.");
-        }
-            System.out.println("\nTotal Average Avalance: " + total_avg/10);
+        
     }
 
     public void timeTest(int numberOfTries) {
@@ -69,7 +65,7 @@ public class Tester {
             sum += elapsedTime;
         }
         sum /= numberOfTries;
-        //System.out.println("Average Encryption speed: " + (64/sum)+" bits/ms");
+        System.out.println("Average Encryption speed: " + (64/sum)+" bits/ms");
         sum = 0;
         for (int i = 0; i < numberOfTries; i++) {
             long startTime
@@ -80,6 +76,6 @@ public class Tester {
                     sum += elapsedTime;
         }
         sum /= numberOfTries;
-        //System.out.println("Average Decryption speed: " + (64/sum)+" bits/ms");
+        System.out.println("Average Decryption speed: " + (64/sum)+" bits/ms");
     }
 }
