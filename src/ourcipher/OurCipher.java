@@ -65,6 +65,7 @@ public class OurCipher {
 //        }
         new Tester().timeTest(2000000);
         new Tester().plaintextAvalancheTest(0, 200);
+//            System.out.println(c.decrypt(c.encrypt(15)));
     }
 
 }
