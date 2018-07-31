@@ -47,10 +47,10 @@ public class SBOX {
         {0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d}};
 
     public int sub (int number){
-        return sbox[number &0xF][number >> 4];
+        return sbox[number >> 4][number %16];
     }
     public int inverseSub(int number){
-        return invsbox[number >> 4][number &0xF];
+        return invsbox[number >> 4][number %16];
     }
     
 }

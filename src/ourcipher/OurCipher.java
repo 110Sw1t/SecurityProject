@@ -53,6 +53,7 @@ public class OurCipher {
         // TODO code application logic here
 
         Cipher c = new Cipher(0xABCDEFAB);
+        SBOX s = new SBOX();
 
 //        BitSet b = BitSet.valueOf(new long[]{c.encrypt(0)});
 //        BitSet bb = BitSet.valueOf(new long[]{c.encrypt(10)});
@@ -63,9 +64,9 @@ public class OurCipher {
 //        for (int i = 0; i < 10000; i++) {
 //            System.out.println(c.encrypt(i));
 //        }
-        new Tester().timeTest(2000000);
-        new Tester().plaintextAvalancheTest(0, 200);
-//            System.out.println(c.decrypt(c.encrypt(15)));
+//        new Tester().timeTest(2000000);
+//        new Tester().plaintextAvalancheTest(0, 200);
+            System.out.println(s.inverseSub(s.sub(8)));
     }
 
 }
