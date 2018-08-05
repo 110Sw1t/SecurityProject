@@ -32,7 +32,11 @@ public class Cipher {
 
         lsbs = leftCircShift(lsbs, s);
         msbs = leftCircShift(msbs, s);
+        //lsbs = sbox.sub(leftCircShift(lsbs, s)%256);
+        //msbs = sbox.sub(leftCircShift(msbs, s)%256);
         long nk = (((long) lsbs) << 32) | (msbs & 0xffffffffL);
+        //long mask = r.nextLong()*(1 << 8 | 1 << 16 | 1 << 24 | 1 << 32 | 1 << 40 | 1 << 48 | 1 << 56);
+        //nk^=mask;
         nk = permute(tables.PC2, 64, nk);
         return nk;
     }
@@ -51,14 +55,41 @@ public class Cipher {
 
     }
 
-    private int mixFunction(int lsbs, long key, boolean isEncrypt) {
-        long result = key ^ permutatedExpand(lsbs);
+    private int mixFunction(long lsbs, long key, boolean isEncrypt) {
+//        long expandResult = permutatedExpand(lsbs);
+////        System.out.println(result);
+//        long[] segments = new long[8];
+//        for (int i = 0; i < 8; i++) {
+//            segments[i] = expandResult & 0xFF;
+//            expandResult >>= 8;
+////            if(segments[i] < 0) segments[i] = -segments[i];
+//        }
+//      
+//
+//        segments[0] = sbox.sub((int) segments[0]);
+//        segments[1] = sbox.sub((int) segments[1]);
+//        segments[2] = sbox.sub((int) segments[2]);
+//        segments[3] = sbox.sub((int) segments[3]);
+//        segments[4] = sbox.sub((int) segments[4]);
+//        segments[5] = sbox.sub((int) segments[5]);
+//        segments[6] = sbox.sub((int) segments[6]);
+//        segments[7] = sbox.sub((int) segments[7]);
+//
+//        expandResult = (segments[0])|
+//                (segments[1] << 8)|
+//                (segments[2] << 16)|
+//                (segments[3] << 24)|
+//                (segments[4] << 32)|
+//                (segments[5] << 40)|
+//                (segments[6] << 48)|
+//                (segments[7] << 56);
+//                
+        long result = key ^ permutatedExpand(lsbs);//expandResult;
 //        System.out.println(result);
         long[] segments = new long[8];
         for (int i = 0; i < 8; i++) {
             segments[i] = result & 0xFF;
             result >>= 8;
-//            if(segments[i] < 0) segments[i] = -segments[i];
         }
         long seg0 = segments[7] ^ segments[1];
         long seg1 = segments[6] ^ segments[0];
@@ -78,24 +109,13 @@ public class Cipher {
         return (int) (result);
     }
 
-    private long round(long number, long key, boolean isEncrypt) {
-        int lsbs = (int) (((0xFFFF0000) & (number)) >> 16);
-        int msbs = (int) ((0x0000FFFF) & (number));
-        //int lsbs = (int) (number);
-        //int msbs = (int) (number >> 32);
-        int out1 = mixFunction(lsbs, key, isEncrypt);
-        int newLSBS = out1 ^ msbs;
-        long newMSBS = (((long) lsbs) << 16);
-        return newMSBS ^ newLSBS;
-    }
-
-    private static long permutatedExpand(int number) {
+    private static long permutatedExpand(long number) {
         long result = number;
 
         long[] segments = new long[8];
         for (int i = 0; i < 4; i++) {
 
-            segments[i] = (byte) result;
+            segments[i] = result&0xFF;
             result >>= 8;
         }
         segments[4] = (segments[0] ^ segments[2]);
@@ -127,28 +147,39 @@ public class Cipher {
     }
 
     private long[] expandKey(long key) {
-        long[] keys = new long[NUMBEROFROUNDS];
+        long[] ekeys = new long[NUMBEROFROUNDS];
+        key = key ^ this.number;
         for (int i = 0; i < NUMBEROFROUNDS; i++) {
-            keys[i] = generateKey(key, i);
-            key = keys[i];
+            ekeys[i] = generateKey(key, i);
+            key = ekeys[i];
         }
-        return keys;
+        return ekeys;
+    }
+
+    private long round(long number, long key, boolean isEncrypt) {
+        long lsbs = (number) & 0xFFFFFFFFL;
+        long msbs = (number >> 32);
+        int out1 = mixFunction(lsbs, key, isEncrypt);
+        long newLSBS = out1 ^ msbs;
+        long newMSBS = lsbs << 32;
+        return newMSBS ^ newLSBS;
     }
 
     private long process(long number, boolean isEncrypt) {
         for (int i = 0; i < NUMBEROFROUNDS; i++) {
             int roundUtilityIndex = (isEncrypt) ? i : NUMBEROFROUNDS - i - 1;
-            number = round(number, keys[roundUtilityIndex], isEncrypt);
+            number = round(number, 1, isEncrypt);
         }
         return swap(number);
-
     }
 
     public long encrypt(long number) {
+        this.number = number;
         return process(number, true);
     }
 
     public long decrypt(long number) {
+        this.number = number;
         return process(number, false);
     }
 }
