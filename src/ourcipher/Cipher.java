@@ -32,11 +32,7 @@ public class Cipher {
 
         lsbs = leftCircShift(lsbs, s);
         msbs = leftCircShift(msbs, s);
-        //lsbs = sbox.sub(leftCircShift(lsbs, s)%256);
-        //msbs = sbox.sub(leftCircShift(msbs, s)%256);
         long nk = (((long) lsbs) << 32) | (msbs & 0xffffffffL);
-        //long mask = r.nextLong()*(1 << 8 | 1 << 16 | 1 << 24 | 1 << 32 | 1 << 40 | 1 << 48 | 1 << 56);
-        //nk^=mask;
         nk = permute(tables.PC2, 64, nk);
         return nk;
     }
@@ -83,9 +79,10 @@ public class Cipher {
     }
 
     private long round(long number, long key, boolean isEncrypt) {
-
-        int lsbs = (int) (number);
-        int msbs = (int) (number >> 32);
+        int lsbs = (int) (((0xFFFF0000) & (number)) >> 16);
+        int msbs = (int) ((0x0000FFFF) & (number));
+        //int lsbs = (int) (number);
+        //int msbs = (int) (number >> 32);
         int out1 = mixFunction(lsbs, key, isEncrypt);
         int newLSBS = out1 ^ msbs;
         long newMSBS = (((long) lsbs) << 16);
@@ -131,7 +128,6 @@ public class Cipher {
 
     private long[] expandKey(long key) {
         long[] keys = new long[NUMBEROFROUNDS];
-        key = key ^ this.number;
         for (int i = 0; i < NUMBEROFROUNDS; i++) {
             keys[i] = generateKey(key, i);
             key = keys[i];
@@ -149,7 +145,6 @@ public class Cipher {
     }
 
     public long encrypt(long number) {
-        this.number = number;
         return process(number, true);
     }
 

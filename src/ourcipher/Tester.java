@@ -24,6 +24,37 @@ public class Tester {
         r = new Random();
     }
 
+    public void keyAvalancheTest(int startNumber, long numberOfTests) {
+            double sum = 0, min = Double.MAX_VALUE, max = Double.MIN_VALUE;
+
+            long oldKey = startNumber;
+            long oldCipher = c.encrypt(oldKey);
+
+            for (int i = 0; i < numberOfTests; i++) {
+                long newKey = oldKey ^ (1 << r.nextInt(32));
+                this.c = new Cipher(newKey);
+                this.key = (int)newKey;
+                long newCipher = c.encrypt(0xB);
+                long xoredNewOldCipherText = oldCipher ^ newCipher;
+                int cardinality = BitSet.valueOf(new long[]{xoredNewOldCipherText}).cardinality();
+                if (cardinality > max) {
+                    max = cardinality;
+                }
+                if (cardinality < min) {
+                    min = cardinality;
+                }
+                System.out.println("Key: "+Long.toBinaryString(newKey)+", Output: "+Long.toBinaryString(newCipher) + ", Avalanche Effect: " + cardinality+"/64bit, " +cardinality/0.640+"%.");
+                sum += cardinality;
+                oldCipher = newCipher;
+                oldKey = newKey;
+            }
+            sum /= numberOfTests;
+            System.out.println("Key Avalanche Test Report: \nAverage avalanche " + sum + "/64bit, " + sum / 0.640 + "%.");
+            System.out.println("Minimum avalanche " + min + "/64bit, " + min / 0.640 + "%.");
+            System.out.println("Maximum avalanche " + max + "/64bit, " + max / 0.640 + "%.\n");
+        
+    }
+    
     public void plaintextAvalancheTest(int startNumber, long numberOfTests) {
             double sum = 0, min = Double.MAX_VALUE, max = Double.MIN_VALUE;
 
@@ -41,15 +72,15 @@ public class Tester {
                 if (cardinality < min) {
                     min = cardinality;
                 }
-                //System.out.println("Input: "+newPlain+", Output: "+newCipher + ", Avalanche Effect: " + cardinality+"/64bit, " +cardinality/0.640+"%.");
+                System.out.println("Input: "+Long.toBinaryString(newPlain)+", Output: "+Long.toBinaryString(newCipher) + ", Avalanche Effect: " + cardinality+"/64bit, " +cardinality/0.640+"%.");
                 sum += cardinality;
                 oldCipher = newCipher;
                 oldPlain = newPlain;
             }
             sum /= numberOfTests;
-            System.out.println("Key: " + this.key + "\tAverage avalanche " + sum + "/64bit, " + sum / 0.640 + "%.");
+            System.out.println("Key: " + Long.toBinaryString(this.key) + "\tAverage avalanche " + sum + "/64bit, " + sum / 0.640 + "%.");
             System.out.println("Minimum avalanche " + min + "/64bit, " + min / 0.640 + "%.");
-            System.out.println("Maximum avalanche " + max + "/64bit, " + max / 0.640 + "%.");
+            System.out.println("Maximum avalanche " + max + "/64bit, " + max / 0.640 + "%.\n");
         
     }
 
